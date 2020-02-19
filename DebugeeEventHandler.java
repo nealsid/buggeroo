@@ -74,7 +74,7 @@ public class DebugeeEventHandler {
 	    } catch (AbsentInformationException aie) {
 		out.println("No source information available (aie)");
 	    }
-	    inputHandler.HandleUserCommandsUntilTargetNotSuspended();
+	    inputHandler.HandleUserCommandsUntilTargetNotSuspended(event);
 	    vm.resume();
 	} else if (event instanceof ClassPrepareEvent) {
 	    ClassPrepareEvent cpe = (ClassPrepareEvent)(event);
