@@ -40,7 +40,7 @@ public class Main {
             vm = connector.launch(connArgs);
             //            vm.setDebugTraceMode(VirtualMachine.TRACE_ALL);
             vm.eventRequestManager().createClassPrepareRequest().enable();
-            startEventProcessor();
+            startEventProcessor(mainClass);
             out.println("started event processor");
             debugeeOutputHandler = new Thread(new DebuggeeOutputHandler(vm.process()));
             debugeeOutputHandler.start();
@@ -58,7 +58,7 @@ public class Main {
         }
     }
 
-    private void startEventProcessor() {
+    private void startEventProcessor(String mainClass) {
         new Thread(() -> {
                 while (true) {
                     EventSet eventSet;
@@ -77,7 +77,33 @@ public class Main {
                             return;
                         } else if (event instanceof ClassPrepareEvent) {
                             ClassPrepareEvent cpe = (ClassPrepareEvent)(event);
-                            out.println("Class prepare: " + cpe.referenceType().name());
+                            var classBeingPrepared = cpe.referenceType().name();
+                            if (classBeingPrepared.equals(mainClass)) {
+                                out.println("Class prepare: " + classBeingPrepared);
+                                cpe.referenceType().allMethods().forEach(x -> out.println(x.name()));
+                                var mainMethodOpt = cpe.referenceType().allMethods().stream().filter(x -> x.name().equals("main")).findAny();
+                                if (mainMethodOpt.isPresent()) {
+                                    var mainMethod = mainMethodOpt.get();
+                                    out.println("Main method line locations");
+                                    try {
+                                        mainMethod.allLineLocations().forEach(x -> {
+                                                String sourceName = null;
+                                                try {
+                                                    sourceName = x.sourceName();
+                                                } catch (AbsentInformationException aie) {
+                                                    out.println(aie);
+                                                }
+                                                out.println(String.format("Loading %s..", sourceName));
+                                                SourceFile mainSourceFile = new SourceFile(sourceName);
+
+                                            });
+                                    } catch (AbsentInformationException aie) {
+                                        out.println(aie);
+                                    }
+                                } else {
+                                    out.println("cannot find main method");
+                                }
+                            }
                             vm.resume();
                         } else {
                             out.println(event);
