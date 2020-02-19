@@ -5,9 +5,15 @@ import static java.lang.System.out;
 import java.io.FileNotFoundException;
 class SourceFile {
     ArrayList<String> sourceLines;
-    SourceFile(String path) {
-	RandomAccessFile in;
+    String path;
 
+    SourceFile(String path) {
+	this.path = path;
+	readSourceFile();
+    }
+
+    private void readSourceFile() {
+	RandomAccessFile in;
 	try {
 	    in = new RandomAccessFile(path, "r");
 	} catch (FileNotFoundException fnfe) {
@@ -22,7 +28,8 @@ class SourceFile {
 		lineCount++;
 	    }
 	    in.seek(0);
-	    sourceLines = new ArrayList<String>(lineCount);
+	    sourceLines = new ArrayList<>(lineCount + 1);
+	    sourceLines.add("");
 	    var oneLine = in.readLine();
 	    while (oneLine != null) {
 		sourceLines.add(oneLine);
@@ -35,5 +42,9 @@ class SourceFile {
 
     public String getLineAt(int lineNumber) {
 	return sourceLines.get(lineNumber);
+    }
+
+    public int getNumberOfLines() {
+	return sourceLines.size();
     }
 }

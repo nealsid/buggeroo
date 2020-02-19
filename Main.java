@@ -1,8 +1,10 @@
+import java.util.ArrayList;
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.VirtualMachineManager;
 import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.VirtualMachine;
+import java.util.Collections;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
@@ -15,16 +17,23 @@ import java.io.IOException;
 import java.lang.Process;
 import java.lang.Runnable;
 import java.io.InputStream;
-import com.sun.jdi.event.VMDisconnectEvent;
+import com.sun.jdi.event.BreakpointEvent;
 import com.sun.jdi.event.ClassPrepareEvent;
 import com.sun.jdi.event.EventSet;
+import com.sun.jdi.event.VMDisconnectEvent;
 
 public class Main {
     static String targetExecutable;
     static String targetArgs;
     VirtualMachine vm;
     Thread debugeeOutputHandler;
+    SourceFileDb sourceFileDb;
+    SourceLineFormatter sourceLineFormatter;
 
+    public Main() {
+        sourceFileDb = new SourceFileDb();
+        sourceLineFormatter = new SourceLineFormatter(sourceFileDb);
+    }
     public static void main(String[] args) {
         new Main().run(args[0]);
     }
@@ -75,28 +84,56 @@ public class Main {
                             out.println("VM Disconnected");
                             debugeeOutputHandler.stop();
                             return;
+                        } else if (event instanceof BreakpointEvent) {
+                            out.println("Breakpoint hit.");
+                            BreakpointEvent bpe = (BreakpointEvent) event;
+                            var bpLocation = bpe.location();
+                            try {
+                                var sourceForBp = sourceLineFormatter.formatLinesSurroundingLine(bpLocation.sourcePath(), bpLocation.lineNumber(), 3, 3, true);
+                                out.println(sourceForBp);
+                            } catch (AbsentInformationException aie) {
+                                out.println("No source information available (aie)");
+                            }
                         } else if (event instanceof ClassPrepareEvent) {
                             ClassPrepareEvent cpe = (ClassPrepareEvent)(event);
                             var classBeingPrepared = cpe.referenceType().name();
                             if (classBeingPrepared.equals(mainClass)) {
-                                out.println("Class prepare: " + classBeingPrepared);
-                                cpe.referenceType().allMethods().forEach(x -> out.println(x.name()));
+                                out.println(String.format("Main class %s loaded, setting breakpoint on main", classBeingPrepared));
                                 var mainMethodOpt = cpe.referenceType().allMethods().stream().filter(x -> x.name().equals("main")).findAny();
                                 if (mainMethodOpt.isPresent()) {
                                     var mainMethod = mainMethodOpt.get();
-                                    out.println("Main method line locations");
                                     try {
-                                        mainMethod.allLineLocations().forEach(x -> {
+                                        int mainFunctionFirstLineNumber = 0;
+                                        // For some reason JDI returns line numbers in a not-sorted
+                                        // order, so we duplicate the list and sort it here.
+                                        var lineLocs = new ArrayList<>(mainMethod.allLineLocations());
+
+                                        Collections.sort(lineLocs, (x,y) -> {
+                                                if (x.lineNumber() < y.lineNumber()) {
+                                                    return -1;
+                                                }
+                                                if (x.lineNumber() > y.lineNumber()) {
+                                                    return 1;
+                                                }
+                                                return 0;
+                                            });
+
+                                        lineLocs.forEach(x -> {
                                                 String sourceName = null;
                                                 try {
                                                     sourceName = x.sourceName();
                                                 } catch (AbsentInformationException aie) {
                                                     out.println(aie);
                                                 }
-                                                out.println(String.format("Loading %s..", sourceName));
-                                                SourceFile mainSourceFile = new SourceFile(sourceName);
+                                                if (!sourceFileDb.hasSourceFile(sourceName)) {
+                                                    out.println(String.format("Loading %s..", sourceName));
+                                                    sourceFileDb.addSourceFile(sourceName);
 
+                                                }
+                                                out.println(sourceFileDb.getLineAt(sourceName, x.lineNumber()));
                                             });
+                                        out.println("Setting breakpoint at first line of main...");
+                                        vm.eventRequestManager().createBreakpointRequest(lineLocs.get(0)).enable();
                                     } catch (AbsentInformationException aie) {
                                         out.println(aie);
                                     }
