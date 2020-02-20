@@ -77,6 +77,23 @@ class DebuggerUserInputHandler {
 		out.println(aie);
 	    }
 	}
+
+	if (input.startsWith("dv ")) {
+	    Scanner s = new Scanner(input);
+	    s.next();
+	    String varName = s.next();
+	    try {
+		ThreadReference t = vm.allThreads().stream().filter(x -> x.uniqueID() == context.threadId).findAny().get();
+		var frame = t.frames().get((int)context.frameNumber);
+		var localVars = frame.visibleVariables();
+		localVars.stream().filter(lv -> lv.name().equals(varName)).forEach(out::println);
+	    } catch (IncompatibleThreadStateException itse) {
+		out.println(itse);
+	    } catch (AbsentInformationException aie) {
+		out.println(aie);
+	    }
+	}
+
 	if (input.equals("step")) {
 	    ThreadReference t = vm.allThreads().stream().filter(x -> x.uniqueID() == context.threadId).findAny().get();
 	    vm.eventRequestManager().createStepRequest(t, StepRequest.STEP_LINE, StepRequest.STEP_INTO).enable();
@@ -95,6 +112,20 @@ class DebuggerUserInputHandler {
 			printThread(t);
 		    },
 		    () -> out.println(String.format("Invalid thread id: %d", threadId)));
+	}
+
+	if (input.startsWith("frame ")) {
+	    Scanner s = new Scanner(input);
+	    s.next();
+	    long frameId = s.nextInt();
+	    vm.allThreads().stream()
+		.filter(x -> x.uniqueID() == context.threadId)
+		.findAny()
+		.ifPresentOrElse(t -> {
+			context.frameNumber = frameId;
+			printThread(t);
+		    },
+		    () -> out.println(String.format("Invalid frame id: %d", frameId)));
 	}
 
         if (input.equals("threads")) {
@@ -123,8 +154,9 @@ class DebuggerUserInputHandler {
 	    int currentFrameIndex = 0;
 	    for (var currentFrame : t.frames()) {
 
-		out.println(String.format("\t%s%s (%s)%s",
+		out.println(String.format("\t%s%d. %s (%s)%s",
 					  isFrameCurrent(t, currentFrameIndex) ? Preferences.activeFrameColor() : "",
+					  currentFrameIndex,
 					  currentFrame.location().method(),
 					  currentFrame.location(),
 					  ConsoleColors.RESET));
