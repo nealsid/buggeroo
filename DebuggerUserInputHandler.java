@@ -1,4 +1,5 @@
 import com.sun.jdi.IncompatibleThreadStateException;
+import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.event.BreakpointEvent;
 import com.sun.jdi.event.Event;
@@ -6,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.String;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 import static java.lang.System.out;
 
 class DebuggerUserInputHandler {
@@ -50,26 +53,77 @@ class DebuggerUserInputHandler {
 	    return true;
         }
 
+	if (input.equals("up")) {
+	    context.frameNumber++;
+	    printCurrentThread();
+	}
+
+	if (input.equals("down")) {
+	    context.frameNumber--;
+	    printCurrentThread();
+	}
+
+	if (input.startsWith("thread ")) {
+	    Scanner s = new Scanner(input);
+	    s.next();
+	    long threadId = s.nextInt();
+	    vm.allThreads().stream()
+		.filter(x -> x.uniqueID() == threadId)
+		.findAny()
+		.ifPresentOrElse(t -> {
+			context.threadId = threadId;
+			context.frameNumber = 0;
+			printThread(t);
+		    },
+		    () -> out.println(String.format("Invalid thread id: %d", threadId)));
+	}
+
         if (input.equals("threads")) {
-            vm.allThreads().forEach(x -> {
-                    out.println(String.format("%sThread %d %s%s",
-					      x.uniqueID() == context.threadId ? ConsoleColors.PURPLE_BOLD : "",
-					      x.uniqueID(),
-					      x.name().isEmpty() ? "" : String.format("(name: %s)", x.name()),
-					      ConsoleColors.RESET));
-                    try {
-                        x.frames().forEach(y -> {
-                                out.println(String.format("\t%s %s(%s)%s", y.location().method(), ConsoleColors.BLUE, y.location(), ConsoleColors.RESET));
-                            });
-                    } catch (IncompatibleThreadStateException itse) {
-                        out.println("\t" + "No frame information available(itse)");
-                    }
-		    out.println();
-                });
+            vm.allThreads().forEach(t -> printThread(t));
 	    return true;
         }
 
 	return true;
+    }
+
+
+    private void printCurrentThread() {
+	var vmThreadOpt = vm.allThreads().stream().filter(x -> x.uniqueID() == context.threadId).findAny();
+	if (vmThreadOpt.isPresent()) {
+	    printThread(vmThreadOpt.get());
+	}
+    }
+
+    private void printThread(ThreadReference t) {
+	out.println(String.format("%sThread %d %s%s",
+				  isThreadCurrent(t) ? ConsoleColors.CYAN_BACKGROUND : "",
+				  t.uniqueID(),
+				  t.name().isEmpty() ? "" : String.format("(name: %s)", t.name()),
+				  ConsoleColors.RESET));
+	try {
+	    int currentFrameIndex = 0;
+	    for (var currentFrame : t.frames()) {
+
+		out.println(String.format("\t%s%s (%s)%s",
+					  isThreadCurrent(t) && isFrameCurrent(currentFrameIndex) ? ConsoleColors.YELLOW_BOLD : "",
+					  currentFrame.location().method(),
+					  currentFrame.location(),
+					  ConsoleColors.RESET));
+		currentFrameIndex++;
+	    }
+	} catch (IncompatibleThreadStateException itse) {
+	    out.println("\t" + "No frame information available(itse)");
+	}
+	out.println();
+
+    }
+
+    private boolean isFrameCurrent(int currentFrameIndex) {
+	return currentFrameIndex == context.frameNumber;
+    }
+
+    private boolean isThreadCurrent(ThreadReference t) {
+	return t.uniqueID() == context.threadId;
     }
 
     private String readUntilNewline() {
