@@ -96,7 +96,7 @@ class DebuggerUserInputHandler {
 
     private void printThread(ThreadReference t) {
 	out.println(String.format("%sThread %d %s%s",
-				  isThreadCurrent(t) ? ConsoleColors.CYAN_BACKGROUND : "",
+				  isThreadCurrent(t) ? Preferences.activeThreadColor() : "",
 				  t.uniqueID(),
 				  t.name().isEmpty() ? "" : String.format("(name: %s)", t.name()),
 				  ConsoleColors.RESET));
@@ -105,7 +105,7 @@ class DebuggerUserInputHandler {
 	    for (var currentFrame : t.frames()) {
 
 		out.println(String.format("\t%s%s (%s)%s",
-					  isThreadCurrent(t) && isFrameCurrent(currentFrameIndex) ? ConsoleColors.YELLOW_BOLD : "",
+					  isFrameCurrent(t, currentFrameIndex) ? Preferences.activeFrameColor() : "",
 					  currentFrame.location().method(),
 					  currentFrame.location(),
 					  ConsoleColors.RESET));
@@ -118,8 +118,8 @@ class DebuggerUserInputHandler {
 
     }
 
-    private boolean isFrameCurrent(int currentFrameIndex) {
-	return currentFrameIndex == context.frameNumber;
+    private boolean isFrameCurrent(ThreadReference t, int currentFrameIndex) {
+	return isThreadCurrent(t) && currentFrameIndex == context.frameNumber;
     }
 
     private boolean isThreadCurrent(ThreadReference t) {
