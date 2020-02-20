@@ -1,8 +1,12 @@
-import java.util.ArrayList;
-import java.io.RandomAccessFile;
-import java.io.IOException;
-import static java.lang.System.out;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import static java.lang.System.out;
 class SourceFile {
     ArrayList<String> sourceLines;
     String path;
@@ -10,6 +14,29 @@ class SourceFile {
     SourceFile(String path) {
 	this.path = path;
 	readSourceFile();
+    }
+
+    SourceFile(String path, InputStream in) {
+	this.path = path;
+	readSourceFileFromInputStream(in);
+    }
+
+    private void readSourceFileFromInputStream(InputStream in) {
+	BufferedReader br = new BufferedReader(new InputStreamReader(in));
+	int lineCount = 0;
+	sourceLines = new ArrayList<>();
+	sourceLines.add("");
+	try {
+	    do {
+		String s = br.readLine();
+		if (s == null) {
+		    break;
+		}
+		sourceLines.add(s);
+	    } while (true);
+	} catch (IOException ioe) {
+	    out.println(ioe);
+	}
     }
 
     private void readSourceFile() {
@@ -38,6 +65,7 @@ class SourceFile {
 	} catch (IOException ioe) {
 	    out.println(ioe);
 	}
+
     }
 
     public String getLineAt(int lineNumber) {

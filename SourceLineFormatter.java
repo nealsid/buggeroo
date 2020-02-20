@@ -17,15 +17,20 @@ public class SourceLineFormatter {
 	}
 
 	var sourceFile = sourceDb.get(path);
+	if (sourceFile == null) {
+	    return String.format("No source file for %s available", path);
+	}
 	int sourceLineCount = sourceFile.getNumberOfLines();
 
-	if (lineMax > sourceLineCount) {
-	    lineMax = sourceLineCount;
+	if (lineMax >= sourceLineCount) {
+	    lineMax = sourceLineCount - 1;
 	}
 
 	var sb = new StringBuilder();
 	int prefixSpaceCount = numberOfDigitsIn(lineMax);
-
+	if (prefixSpaceCount < 2) {
+	    prefixSpaceCount = 2;
+	}
 	for (int i = lineMin; i <= lineMax; i++) {
 	    if (i == lineNumber) {
 		sb.append(String.format("=>%s%s\r\n", " ".repeat(prefixSpaceCount - 2), sourceFile.getLineAt(i)));

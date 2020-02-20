@@ -1,3 +1,4 @@
+import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VirtualMachine;
@@ -64,9 +65,21 @@ class DebuggerUserInputHandler {
 	    printCurrentThread();
 	}
 
+	if (input.equals("dv")) {
+	    try {
+		ThreadReference t = vm.allThreads().stream().filter(x -> x.uniqueID() == context.threadId).findAny().get();
+		var frame = t.frames().get((int)context.frameNumber);
+		var localVars = frame.visibleVariables();
+		localVars.stream().forEach(out::println);
+	    } catch (IncompatibleThreadStateException itse) {
+		out.println(itse);
+	    } catch (AbsentInformationException aie) {
+		out.println(aie);
+	    }
+	}
 	if (input.equals("step")) {
 	    ThreadReference t = vm.allThreads().stream().filter(x -> x.uniqueID() == context.threadId).findAny().get();
-	    vm.eventRequestManager().createStepRequest(t, StepRequest.STEP_LINE, StepRequest.STEP_OVER).enable();
+	    vm.eventRequestManager().createStepRequest(t, StepRequest.STEP_LINE, StepRequest.STEP_INTO).enable();
 	    return false;
 	}
 	if (input.startsWith("thread ")) {
