@@ -7,6 +7,7 @@ import com.sun.jdi.event.BreakpointEvent;
 import com.sun.jdi.event.ClassPrepareEvent;
 import com.sun.jdi.event.Event;
 import com.sun.jdi.event.EventSet;
+import com.sun.jdi.event.StepEvent;
 import com.sun.jdi.event.ThreadStartEvent;
 import com.sun.jdi.event.VMDisconnectEvent;
 import java.lang.InterruptedException;
@@ -74,6 +75,19 @@ public class DebugeeEventHandler {
 	    } catch (AbsentInformationException aie) {
 		out.println("No source information available (aie)");
 	    }
+	    inputHandler.HandleUserCommandsUntilTargetNotSuspended(event);
+	    vm.resume();
+	} else if (event instanceof StepEvent) {
+	    StepEvent se = (StepEvent) event;
+	    var location = se.location();
+	    try {
+		var sourceForLoc = sourceLineFormatter.formatLinesSurroundingLine(location.sourcePath(),
+										  location.lineNumber(), 3, 3, true);
+		out.println(sourceForLoc);
+	    } catch (AbsentInformationException aie) {
+		out.println("No source information available (aie)");
+	    }
+	    vm.eventRequestManager().deleteEventRequest(se.request());
 	    inputHandler.HandleUserCommandsUntilTargetNotSuspended(event);
 	    vm.resume();
 	} else if (event instanceof ClassPrepareEvent) {

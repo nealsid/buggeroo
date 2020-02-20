@@ -3,6 +3,7 @@ import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.event.BreakpointEvent;
 import com.sun.jdi.event.Event;
+import com.sun.jdi.request.StepRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -63,6 +64,11 @@ class DebuggerUserInputHandler {
 	    printCurrentThread();
 	}
 
+	if (input.equals("step")) {
+	    ThreadReference t = vm.allThreads().stream().filter(x -> x.uniqueID() == context.threadId).findAny().get();
+	    vm.eventRequestManager().createStepRequest(t, StepRequest.STEP_LINE, StepRequest.STEP_OVER).enable();
+	    return false;
+	}
 	if (input.startsWith("thread ")) {
 	    Scanner s = new Scanner(input);
 	    s.next();
