@@ -43,7 +43,7 @@ public class SourceLineFormatter {
 	for (int i = lineMin; i <= lineMax; i++) {
 	    boolean isCurrentLine = i == lineNumber;
 	    sb.append(String.format("%s%s%s\r\n",
-				    isCurrentLine ? "=>" : "",
+				    isCurrentLine ? "=>" : i,
 				    isCurrentLine ? linesOfSpaces[prefixSpaceCount - 2] : linesOfSpaces[prefixSpaceCount - numberOfDigitsIn(i)],
 				    sourceFile.getLineAt(i)));
 	}
