@@ -23,15 +23,17 @@ public class DebugeeEventHandler {
     private final SourceLineFormatter sourceLineFormatter;
     private final DebuggerUserInputHandler inputHandler;
     private final String mainClass;
+    private final ClassIndex classIndex;
 
     public DebugeeEventHandler(String mainClass, VirtualMachine vm, DebuggerStateMachine dsm, SourceFileDb sourceFileDb,
-				SourceLineFormatter sourceLineFormatter) {
+			       SourceLineFormatter sourceLineFormatter, ClassIndex classIndex) {
 	this.mainClass = mainClass;
 	this.vm = vm;
 	this.dsm = dsm;
 	this.sourceFileDb = sourceFileDb;
 	this.sourceLineFormatter = sourceLineFormatter;
-	this.inputHandler = new DebuggerUserInputHandler(vm);
+	this.inputHandler = new DebuggerUserInputHandler(vm, classIndex);
+	this.classIndex = classIndex;
     }
 
     public void StartHandlingEvents() {
@@ -92,6 +94,8 @@ public class DebugeeEventHandler {
 	    vm.resume();
 	} else if (event instanceof ClassPrepareEvent) {
 	    ClassPrepareEvent cpe = (ClassPrepareEvent)(event);
+	    out.println(String.format("Adding %s", cpe.referenceType().name()));
+	    classIndex.addClass(cpe.referenceType());
 	    var classBeingPrepared = cpe.referenceType().name();
 	    if (classBeingPrepared.equals(mainClass)) {
 		out.println(String.format("Main class %s loaded, setting breakpoint on main", classBeingPrepared));

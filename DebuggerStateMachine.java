@@ -16,6 +16,7 @@ public class DebuggerStateMachine {
     private DebuggerUserInputHandler inputHandler;
     private VirtualMachine vm;
     private DebugeeEventHandler eventHandler;
+    private ClassIndex classIndex;
 
     public DebuggerStateMachine(String mainClass, SourceFileDb sourceFileDb,
 				SourceLineFormatter sourceLineFormatter) {
@@ -30,12 +31,13 @@ public class DebuggerStateMachine {
         out.println(connector);
         var connArgs = connector.defaultArguments();
         connArgs.get("main").setValue(mainClass);
+	classIndex = new ClassIndex();
         out.println(connArgs);
         try {
             vm = connector.launch(connArgs);
             vm.eventRequestManager().createClassPrepareRequest().enable();
             vm.eventRequestManager().createThreadStartRequest().enable();
-	    eventHandler = new DebugeeEventHandler(mainClass, vm, this, sourceFileDb, sourceLineFormatter);
+	    eventHandler = new DebugeeEventHandler(mainClass, vm, this, sourceFileDb, sourceLineFormatter, classIndex);
 	    var processOutputHandler = new Thread(new DebuggeeOutputHandler(vm.process()));
 	    processOutputHandler.start();
 	    vm.resume();

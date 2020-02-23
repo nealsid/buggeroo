@@ -16,10 +16,12 @@ import static java.lang.System.out;
 class DebuggerUserInputHandler {
     private final VirtualMachine vm;
     private final DebuggerUserInputContext context;
+    private final ClassIndex classIndex;
 
-    public DebuggerUserInputHandler(VirtualMachine vm) {
+    public DebuggerUserInputHandler(VirtualMachine vm, ClassIndex classIndex) {
 	this.vm = vm;
 	this.context = new DebuggerUserInputContext();
+	this.classIndex = classIndex;
     }
 
     public void HandleUserCommandsUntilTargetNotSuspended(Event ev) {
@@ -38,6 +40,13 @@ class DebuggerUserInputHandler {
     }
 
     private boolean dispatchCommand(String input) {
+	if (input.startsWith("cl ")) {
+	    Scanner s = new Scanner(input);
+	    s.next();
+	    String clLookupKey = s.next();
+	    out.println(classIndex.lookupClass(clLookupKey));
+	}
+
         if (input.equals("cont")) {
 	    return false;
         }
@@ -92,6 +101,12 @@ class DebuggerUserInputHandler {
 	    } catch (AbsentInformationException aie) {
 		out.println(aie);
 	    }
+	}
+
+	if (input.equals("stepo")) {
+	    ThreadReference t = vm.allThreads().stream().filter(x -> x.uniqueID() == context.threadId).findAny().get();
+	    vm.eventRequestManager().createStepRequest(t, StepRequest.STEP_LINE, StepRequest.STEP_OUT).enable();
+	    return false;
 	}
 
 	if (input.equals("step")) {
@@ -182,7 +197,12 @@ class DebuggerUserInputHandler {
         BufferedReader reader =
             new BufferedReader(new InputStreamReader(System.in));
 
+	char characterIn;
+	StringBuilder inputBuilder = new StringBuilder();
         try {
+
+	    characterIn = (char) reader.read();
+	    if (characterIn ==
             return reader.readLine();
         } catch (IOException ioe) {
             out.println(ioe);
