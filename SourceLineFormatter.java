@@ -3,6 +3,15 @@
 public class SourceLineFormatter {
     private final SourceFileDb sourceDb;
 
+    private static String[] linesOfSpaces = {
+	"",
+	" ",
+	"  ",
+	"   ",
+	"    ",
+	"     "
+    };
+
     public SourceLineFormatter(SourceFileDb sourceDb) {
 	this.sourceDb = sourceDb;
     }
@@ -32,12 +41,11 @@ public class SourceLineFormatter {
 	    prefixSpaceCount = 2;
 	}
 	for (int i = lineMin; i <= lineMax; i++) {
-	    if (i == lineNumber) {
-		sb.append(String.format("=>%s%s\r\n", " ".repeat(prefixSpaceCount - 2), sourceFile.getLineAt(i)));
-	    } else {
-		sb.append(String.format("%d%s%s\r\n", i, " ".repeat(prefixSpaceCount - numberOfDigitsIn(i)),
-								    sourceFile.getLineAt(i)));
-	    }
+	    boolean isCurrentLine = i == lineNumber;
+	    sb.append(String.format("%s%s%s\r\n",
+				    isCurrentLine ? "=>" : "",
+				    isCurrentLine ? linesOfSpaces[prefixSpaceCount - 2] : linesOfSpaces[prefixSpaceCount - numberOfDigitsIn(i)],
+				    sourceFile.getLineAt(i)));
 	}
 
 	return sb.toString();
