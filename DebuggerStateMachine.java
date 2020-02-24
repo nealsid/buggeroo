@@ -31,7 +31,7 @@ public class DebuggerStateMachine {
         out.println(connector);
         var connArgs = connector.defaultArguments();
         connArgs.get("main").setValue(mainClass);
-	classIndex = new ClassIndex();
+	classIndex = new HashmapClassIndex();
         out.println(connArgs);
         try {
             vm = connector.launch(connArgs);

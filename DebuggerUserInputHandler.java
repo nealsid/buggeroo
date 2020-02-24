@@ -44,7 +44,12 @@ class DebuggerUserInputHandler {
 	    Scanner s = new Scanner(input);
 	    s.next();
 	    String clLookupKey = s.next();
-	    out.println(classIndex.lookupClass(clLookupKey));
+	    long startTime = System.nanoTime();
+	    var results = classIndex.lookupClass(clLookupKey);
+	    long endTime = System.nanoTime();
+	    long duration = (endTime - startTime);
+	    out.println(results);
+	    out.println(String.format("Duration: %f ms", duration / 1000000.0));
 	}
 
         if (input.equals("cont")) {
@@ -197,13 +202,8 @@ class DebuggerUserInputHandler {
         BufferedReader reader =
             new BufferedReader(new InputStreamReader(System.in));
 
-	char characterIn;
-	StringBuilder inputBuilder = new StringBuilder();
-        try {
-
-	    characterIn = (char) reader.read();
-	    if (characterIn ==
-            return reader.readLine();
+	try {
+	    return reader.readLine();
         } catch (IOException ioe) {
             out.println(ioe);
         }
