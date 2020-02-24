@@ -33,6 +33,7 @@ public class DebuggerStateMachine {
         out.println(connector);
         var connArgs = connector.defaultArguments();
         connArgs.get("main").setValue(mainClass);
+	connArgs.get("options").setValue(String.format("-cp %s", System.getProperty("java.class.path")));
 	out.println(connArgs);
 	classIndex = new HashmapClassIndex();
         out.println(connArgs);

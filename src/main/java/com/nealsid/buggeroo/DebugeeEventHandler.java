@@ -123,7 +123,7 @@ public class DebugeeEventHandler {
 			lineLocs.forEach(x -> {
 				String sourceName = null;
 				try {
-				    sourceName = x.sourceName();
+				    sourceName = x.sourcePath();
 				} catch (AbsentInformationException aie) {
 				    out.println(aie);
 				}
