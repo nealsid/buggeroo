@@ -1,3 +1,5 @@
+package com.nealsid.buggeroo;
+
 
 
 public class SourceLineFormatter {

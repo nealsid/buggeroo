@@ -1,3 +1,5 @@
+package com.nealsid.buggeroo;
+
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.TypeComponent;
 import java.util.ArrayList;

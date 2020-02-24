@@ -1,3 +1,5 @@
+package com.nealsid.buggeroo;
+
 import java.io.IOException;
 import java.lang.StringBuilder;
 import java.nio.file.Paths;

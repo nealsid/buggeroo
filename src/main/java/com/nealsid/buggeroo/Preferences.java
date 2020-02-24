@@ -1,3 +1,5 @@
+package com.nealsid.buggeroo;
+
 import java.lang.String;
 
 class Preferences {

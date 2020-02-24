@@ -1,3 +1,5 @@
+package com.nealsid.buggeroo;
+
 import static java.lang.System.in;
 import static java.lang.System.out;
 

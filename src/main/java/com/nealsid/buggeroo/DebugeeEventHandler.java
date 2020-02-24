@@ -1,3 +1,5 @@
+package com.nealsid.buggeroo;
+
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.VirtualMachine;

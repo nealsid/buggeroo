@@ -1,0 +1,4 @@
+build --define=ABSOLUTE_JAVABASE=/Library/Java/JavaVirtualMachines/jdk-13.0.2.jdk/Contents/Home
+build --host_javabase=@bazel_tools//tools/jdk:absolute_javabase
+build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
+build --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla

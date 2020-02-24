@@ -1,3 +1,5 @@
+package com.nealsid.buggeroo;
+
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.VirtualMachineManager;
@@ -31,6 +33,7 @@ public class DebuggerStateMachine {
         out.println(connector);
         var connArgs = connector.defaultArguments();
         connArgs.get("main").setValue(mainClass);
+	out.println(connArgs);
 	classIndex = new HashmapClassIndex();
         out.println(connArgs);
         try {
