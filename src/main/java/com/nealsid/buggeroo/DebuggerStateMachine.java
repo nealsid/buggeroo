@@ -35,7 +35,7 @@ public class DebuggerStateMachine {
         var connArgs = connector.defaultArguments();
         connArgs.get("main").setValue(mainClass);
 	out.println("Target class path: " + targetClassPath);
-	connArgs.get("options").setValue(String.format("-cp /private/var/tmp/_bazel_nealsid/1daea1ccd86efe16316f278288a7d7fe/execroot/__main__/bazel-out/darwin-fastbuild/bin"));//%s", targetClassPath));
+	connArgs.get("options").setValue(String.format("-cp %s", targetClassPath));
 	classIndex = new HashmapClassIndex();
         out.println(connArgs);
         try {
