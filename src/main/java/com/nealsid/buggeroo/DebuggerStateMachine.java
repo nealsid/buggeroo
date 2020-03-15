@@ -14,27 +14,28 @@ public class DebuggerStateMachine {
     private final String mainClass;
     private final SourceFileDb sourceFileDb;
     private final SourceLineFormatter sourceLineFormatter;
+    private final String targetClassPath;
 
     private DebuggerUserInputHandler inputHandler;
     private VirtualMachine vm;
     private DebugeeEventHandler eventHandler;
     private ClassIndex classIndex;
 
-    public DebuggerStateMachine(String mainClass, SourceFileDb sourceFileDb,
+    public DebuggerStateMachine(String mainClass, String targetClassPath, SourceFileDb sourceFileDb,
 				SourceLineFormatter sourceLineFormatter) {
 	this.mainClass = mainClass;
 	this.sourceFileDb = sourceFileDb;
 	this.sourceLineFormatter = sourceLineFormatter;
+	this.targetClassPath = targetClassPath;
     }
 
     public void launch() {
         VirtualMachineManager vmm = Bootstrap.virtualMachineManager();
         var connector = vmm.launchingConnectors().stream().filter(x -> x.name() == "com.sun.jdi.CommandLineLaunch").findAny().get();
-        out.println(connector);
         var connArgs = connector.defaultArguments();
         connArgs.get("main").setValue(mainClass);
-	connArgs.get("options").setValue(String.format("-cp %s", System.getProperty("java.class.path")));
-	out.println(connArgs);
+	out.println("Target class path: " + targetClassPath);
+	connArgs.get("options").setValue(String.format("-cp /private/var/tmp/_bazel_nealsid/1daea1ccd86efe16316f278288a7d7fe/execroot/__main__/bazel-out/darwin-fastbuild/bin"));//%s", targetClassPath));
 	classIndex = new HashmapClassIndex();
         out.println(connArgs);
         try {

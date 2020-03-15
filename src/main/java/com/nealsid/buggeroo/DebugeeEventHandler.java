@@ -96,7 +96,6 @@ public class DebugeeEventHandler {
 	    vm.resume();
 	} else if (event instanceof ClassPrepareEvent) {
 	    ClassPrepareEvent cpe = (ClassPrepareEvent)(event);
-	    out.println(String.format("Adding %s", cpe.referenceType().name()));
 	    classIndex.addClass(cpe.referenceType());
 	    var classBeingPrepared = cpe.referenceType().name();
 	    if (classBeingPrepared.equals(mainClass)) {
