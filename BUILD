@@ -1,6 +1,7 @@
 java_binary(
     name = "Buggeroo",
-    srcs = glob(["src/main/java/com/nealsid/buggeroo/*.java"]),
+    srcs = glob(["src/main/java/com/nealsid/buggeroo/*.java"],
+                exclude=["src/main/java/com/nealsid/buggeroo/Fibonacci.java"]),
     deps = [
         "@maven//:net_sourceforge_argparse4j_argparse4j"
     ],
@@ -10,15 +11,14 @@ java_binary(
 java_binary(
     name = "DbgFibonacci",
     runtime_deps = [
-        ":Buggeroo",
+        ":Buggeroo_deploy.jar",
         ":Fibonacci",
         ":libFibonacci-src.jar",
-        "@maven//:net_sourceforge_argparse4j_argparse4j"
     ],
     args = [
         "com.nealsid.buggeroo.Fibonacci",
-        "--targetcp $(BINDIR)/libFibonacci.jar",
-        "--srcjarcp $(BINDIR)/libFibonacci-src.jar"
+        "--targetcp libFibonacci.jar",
+        "--srcjarcp libFibonacci-src.jar"
     ],
     main_class = "com.nealsid.buggeroo.Main"
 )
